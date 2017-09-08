@@ -612,7 +612,7 @@ namespace ImGuizmo
 	  return ImVec2(trans.x, trans.y);
    }
 
-   static void ComputeCameraRay(vec_t &rayOrigin, vec_t &rayDir)
+   static void ComputeCameraRay(vec_t &rayOrigin, vec_t &rayDir, bool reverseZ)
    {
       ImGuiIO& io = ImGui::GetIO();
 
@@ -622,10 +622,10 @@ namespace ImGuizmo
 	  float mox = ((io.MousePos.x - gContext.mX) / gContext.mWidth) * 2.f - 1.f;
 	  float moy = (1.f - ((io.MousePos.y - gContext.mY) / gContext.mHeight)) * 2.f - 1.f;
 	  
-      rayOrigin.Transform(makeVect(mox, moy, 0.f, 1.f), mViewProjInverse);
+	  rayOrigin.Transform(makeVect(mox, moy, reverseZ ? 1.f : 0.f, 1.f), mViewProjInverse);
       rayOrigin *= 1.f / rayOrigin.w;
       vec_t rayEnd;
-      rayEnd.Transform(makeVect(mox, moy, 1.f, 1.f), mViewProjInverse);
+	  rayEnd.Transform(makeVect(mox, moy, reverseZ ? 0.f : 1.f, 1.f), mViewProjInverse);
       rayEnd *= 1.f / rayEnd.w;
       rayDir = Normalized(rayEnd - rayOrigin);
    }
@@ -687,7 +687,7 @@ namespace ImGuizmo
       return trf.w;
    }
 
-   static void ComputeContext(const float *view, const float *projection, float *matrix, MODE mode)
+   static void ComputeContext(const float *view, const float *projection, float *matrix, MODE mode, bool reverseZ)
    {
       gContext.mMode = mode;
       gContext.mViewMat = *(matrix_t*)view;
@@ -723,7 +723,7 @@ namespace ImGuizmo
       gContext.mScreenSquareMin = ImVec2(centerSSpace.x - 10.f, centerSSpace.y - 10.f);
       gContext.mScreenSquareMax = ImVec2(centerSSpace.x + 10.f, centerSSpace.y + 10.f);
 
-      ComputeCameraRay(gContext.mRayOrigin, gContext.mRayVector);
+      ComputeCameraRay(gContext.mRayOrigin, gContext.mRayVector, reverseZ);
    }
 
    static void ComputeColors(ImU32 *colors, int type, OPERATION operation)
@@ -1609,9 +1609,9 @@ namespace ImGuizmo
       mat.v.position.Set(translation[0], translation[1], translation[2], 1.f);
    }
 
-   void Manipulate(const float *view, const float *projection, OPERATION operation, MODE mode, float *matrix, float *deltaMatrix, float *snap, float *localBounds, float *boundsSnap)
+   void Manipulate(const float *view, const float *projection, OPERATION operation, MODE mode, float *matrix, float *deltaMatrix, float *snap, float *localBounds, float *boundsSnap, bool reverseZ)
    {
-      ComputeContext(view, projection, matrix, mode);
+      ComputeContext(view, projection, matrix, mode, reverseZ);
 
       // set delta to identity 
       if (deltaMatrix)
