@@ -674,11 +674,14 @@ namespace ImGuizmo
    {
       ImGuiIO& io = ImGui::GetIO();
 
-      ImGui::Begin("gizmo", NULL, io.DisplaySize, 0, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus);
+      const ImU32 flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus;
+      ImGui::SetNextWindowSize(io.DisplaySize);
 
+	  ImGui::PushStyleColor(ImGuiCol_WindowBg, 0);
+      ImGui::Begin("gizmo", NULL, flags);
       gContext.mDrawList = ImGui::GetWindowDrawList();
-
       ImGui::End();
+	  ImGui::PopStyleColor();
    }
 
    bool IsUsing()
@@ -895,7 +898,7 @@ namespace ImGuizmo
          if(radiusAxis > gContext.mRadiusSquareCenter)
            gContext.mRadiusSquareCenter = radiusAxis;
 
-         drawList->AddPolyline(circlePos, halfCircleSegmentCount, colors[3 - axis], false, 2, true);
+         drawList->AddPolyline(circlePos, halfCircleSegmentCount, colors[3 - axis], false, 2);
       }
       drawList->AddCircle(worldToPos(gContext.mModel.v.position, gContext.mViewProjection), gContext.mRadiusSquareCenter, colors[0], 64, 3.f);
 
@@ -914,8 +917,8 @@ namespace ImGuizmo
             pos *= gContext.mScreenFactor;
             circlePos[i] = worldToPos(pos + gContext.mModel.v.position, gContext.mViewProjection);
          }
-         drawList->AddConvexPolyFilled(circlePos, halfCircleSegmentCount, 0x801080FF, true);
-         drawList->AddPolyline(circlePos, halfCircleSegmentCount, 0xFF1080FF, true, 2, true);
+         drawList->AddConvexPolyFilled(circlePos, halfCircleSegmentCount, 0x801080FF);
+         drawList->AddPolyline(circlePos, halfCircleSegmentCount, 0xFF1080FF, true, 2);
 
          ImVec2 destinationPosOnScreen = circlePos[1];
          char tmps[512];
@@ -1053,8 +1056,8 @@ namespace ImGuizmo
                vec_t cornerWorldPos = (dirPlaneX * quadUV[j * 2] + dirPlaneY  * quadUV[j * 2 + 1]) * gContext.mScreenFactor;
                screenQuadPts[j] = worldToPos(cornerWorldPos, gContext.mMVP);
             }
-            drawList->AddPolyline(screenQuadPts, 4, planeBorderColor[i], true, 1.0f, true);
-            drawList->AddConvexPolyFilled(screenQuadPts, 4, colors[i + 4], true);
+            drawList->AddPolyline(screenQuadPts, 4, planeBorderColor[i], true, 1.0f);
+            drawList->AddConvexPolyFilled(screenQuadPts, 4, colors[i + 4]);
          }
       }
 
@@ -1094,7 +1097,7 @@ namespace ImGuizmo
 
        // compute best projection axis
        vec_t axesWorldDirections[3];
-       vec_t bestAxisWorldDirection;
+       vec_t bestAxisWorldDirection = { 0.0f, 0.0f, 0.0f, 0.0f };
        int axes[3];
        unsigned int numAxes = 1;
        axes[0] = gContext.mBoundsBestAxis;
@@ -1260,26 +1263,26 @@ namespace ImGuizmo
                // for 1 or 2 axes, compute a ratio that's used for scale and snap it based on resulting length
                for (int i = 0; i < 2; i++)
                {
-                   int axisIndex = gContext.mBoundsAxis[i];
-                   if (axisIndex == -1)
+                   int axisIndex1 = gContext.mBoundsAxis[i];
+                   if (axisIndex1 == -1)
                        continue;
 
                    float ratioAxis = 1.f;
-                   vec_t axisDir = gContext.mBoundsMatrix.component[axisIndex].Abs();
+                   vec_t axisDir = gContext.mBoundsMatrix.component[axisIndex1].Abs();
 
                    float dtAxis = axisDir.Dot(referenceVector);
-                   float boundSize = bounds[axisIndex + 3] - bounds[axisIndex];
+                   float boundSize = bounds[axisIndex1 + 3] - bounds[axisIndex1];
                    if (dtAxis > FLT_EPSILON)
                        ratioAxis = axisDir.Dot(deltaVector) / dtAxis;
 
                    if (snapValues)
                    {
                        float length = boundSize * ratioAxis;
-                       ComputeSnap(&length, snapValues[axisIndex]);
+                       ComputeSnap(&length, snapValues[axisIndex1]);
                        if (boundSize > FLT_EPSILON)
                            ratioAxis = length / boundSize;
                    }
-                   scale.component[axisIndex] *= ratioAxis;
+                   scale.component[axisIndex1] *= ratioAxis;
                }
 
                // transform matrix
@@ -1817,7 +1820,7 @@ namespace ImGuizmo
             continue;
 
          // draw face with lighter color
-         gContext.mDrawList->AddConvexPolyFilled(faceCoordsScreen, 4, directionColor[normalIndex] | 0x808080, true);
+         gContext.mDrawList->AddConvexPolyFilled(faceCoordsScreen, 4, directionColor[normalIndex] | 0x808080);
       }
    }
 };
