@@ -1,3 +1,4 @@
+
 // The MIT License(MIT)
 //
 // Copyright(c) 2016 Cedric Guillemet
@@ -877,9 +878,10 @@ namespace ImGuizmo
          // when using, use stored factors so the gizmo doesn't flip when we translate
          belowAxisLimit = gContext.mBelowAxisLimit[axisIndex];
          belowPlaneLimit = gContext.mBelowPlaneLimit[axisIndex];
-
-         dirPlaneX *= gContext.mAxisFactor[axisIndex];
-         dirPlaneY *= gContext.mAxisFactor[(axisIndex + 1) % 3];
+         
+         dirAxis *= gContext.mAxisFactor[axisIndex];
+         dirPlaneX *= gContext.mAxisFactor[(axisIndex + 1) % 3];
+         dirPlaneY *= gContext.mAxisFactor[(axisIndex + 2) % 3];
       }
       else
       {
@@ -909,7 +911,7 @@ namespace ImGuizmo
 
          // and store values
          gContext.mAxisFactor[axisIndex] = mulAxis;
-         gContext.mAxisFactor[(axisIndex + 1) % 3] = mulAxisY;
+         gContext.mAxisFactor[(axisIndex + 1) % 3] = mulAxisX;
          gContext.mAxisFactor[(axisIndex + 2) % 3] = mulAxisY;
          gContext.mBelowAxisLimit[axisIndex] = belowAxisLimit;
          gContext.mBelowPlaneLimit[axisIndex] = belowPlaneLimit;
@@ -1981,4 +1983,3 @@ namespace ImGuizmo
       }
    }
 };
-
